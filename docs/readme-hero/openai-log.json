@@ -1,0 +1,21 @@
+{
+  "model": "gpt-image-2",
+  "size": "1536x1024",
+  "n": 3,
+  "text": "VALIDAÇÃO DE DOCUMENTOS MÉDICOS",
+  "prompt": "README hero banner for a \"Medical Document Validation API\" — a multi-tenant REST API (FastAPI) that validates clinical documents (e.g., medical reports / laudos): you submit a PDF, an LLM (Gemini / AWS Bedrock / Ollama) checks it against rules, and the API returns a structured verdict. Thesis: clinical documents validated by AI, at API scale.\n\nEditorial isometric 3D illustration, premium palette: deep navy base (#0B1E2D), glowing teal/cyan (#22D3EE/#2DD4BF) primary, warm amber (#F59E0B) accent, a restrained green (#34D399) for \"valid/approved\" and a restrained red/coral (#F87171) ONLY for tiny \"flag/reject\" accents, soft off-white. Dot-grid backdrop. Studio lighting, soft shadows, subtle bloom, high detail. No watermark, no logos.\n\nComposition (wide hero, 3 depth planes, ≤6 visual blocks, left→right):\n\nBACKGROUND — navy sky, faint dot-grid, a low teal constellation arc, generous headroom.\n\nMID PLANE (action band):\n- LEFT: a stylized \"laudo/medical report PDF\" document floating, drifting INTO the system (input).\n- CENTER (hero): a premium glowing \"API gateway\" structure — a translucent rounded panel with clean endpoint chips (/v1/validate, /health, /metrics) and a small multi-tenant key icon (X-API-Key). Behind/around it, three small distinct \"provider\" nodes (Gemini / Bedrock / Ollama) connected to the core, showing multi-provider routing. The PDF passes through the gateway and a scan-line sweeps it.\n- CENTER-RIGHT: the verdict output — the document emerges with a clean structured result card: a green ✓ \"APROVADO\" badge OR a small red flag on a flagged field, plus a tiny structured JSON snippet hint ({valid, issues}). Conveys structured AI verdict.\n- RIGHT (outcome): a small dashboard/metrics tile (billing summary / metrics) glowing amber — the at-scale, measured API.\n\nFOREGROUND — subtle reflective ground plane catching navy/cyan/amber highlights.\n\nMood: enterprise, trustworthy, fintech-meets-healthtech, API-grade. Hierarchy: the API GATEWAY + PROVIDER NODES (center) are protagonists; the verdict card (center-right) and metrics tile (right) are the payoff.\n\nDo NOT include: real brand/operator logos, red cross or caduceus (avoid medical-brand confusion), office/business scenes, suits, photographic real patients/doctors, stock sales charts, wireframe spheres, money piles, generic abstract beauty, social icons, watermarks. Bold modern sans-serif text overlay reading exactly \"VALIDAÇÃO DE DOCUMENTOS MÉDICOS\", centered and clearly legible. Show ONLY this single headline — do NOT add any other labels, captions, callouts or annotations. Keep it to a maximum of 4 visual blocks.",
+  "files": [
+    {
+      "file": "C:\\1Repos\\validacao-documentos-api\\docs\\readme-hero\\openai-1.png",
+      "kb": 1861
+    },
+    {
+      "file": "C:\\1Repos\\validacao-documentos-api\\docs\\readme-hero\\openai-2.png",
+      "kb": 2031
+    },
+    {
+      "file": "C:\\1Repos\\validacao-documentos-api\\docs\\readme-hero\\openai-3.png",
+      "kb": 1943
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+README hero banner for a "Medical Document Validation API" — a multi-tenant REST API (FastAPI) that validates clinical documents (e.g., medical reports / laudos): you submit a PDF, an LLM (Gemini / AWS Bedrock / Ollama) checks it against rules, and the API returns a structured verdict. Thesis: clinical documents validated by AI, at API scale.
+
+Editorial isometric 3D illustration, premium palette: deep navy base (#0B1E2D), glowing teal/cyan (#22D3EE/#2DD4BF) primary, warm amber (#F59E0B) accent, a restrained green (#34D399) for "valid/approved" and a restrained red/coral (#F87171) ONLY for tiny "flag/reject" accents, soft off-white. Dot-grid backdrop. Studio lighting, soft shadows, subtle bloom, high detail. No watermark, no logos.
+
+Composition (wide hero, 3 depth planes, ≤6 visual blocks, left→right):
+
+BACKGROUND — navy sky, faint dot-grid, a low teal constellation arc, generous headroom.
+
+MID PLANE (action band):
+- LEFT: a stylized "laudo/medical report PDF" document floating, drifting INTO the system (input).
+- CENTER (hero): a premium glowing "API gateway" structure — a translucent rounded panel with clean endpoint chips (/v1/validate, /health, /metrics) and a small multi-tenant key icon (X-API-Key). Behind/around it, three small distinct "provider" nodes (Gemini / Bedrock / Ollama) connected to the core, showing multi-provider routing. The PDF passes through the gateway and a scan-line sweeps it.
+- CENTER-RIGHT: the verdict output — the document emerges with a clean structured result card: a green ✓ "APROVADO" badge OR a small red flag on a flagged field, plus a tiny structured JSON snippet hint ({valid, issues}). Conveys structured AI verdict.
+- RIGHT (outcome): a small dashboard/metrics tile (billing summary / metrics) glowing amber — the at-scale, measured API.
+
+FOREGROUND — subtle reflective ground plane catching navy/cyan/amber highlights.
+
+Mood: enterprise, trustworthy, fintech-meets-healthtech, API-grade. Hierarchy: the API GATEWAY + PROVIDER NODES (center) are protagonists; the verdict card (center-right) and metrics tile (right) are the payoff.
+
+Do NOT include: real brand/operator logos, red cross or caduceus (avoid medical-brand confusion), office/business scenes, suits, photographic real patients/doctors, stock sales charts, wireframe spheres, money piles, generic abstract beauty, social icons, watermarks.

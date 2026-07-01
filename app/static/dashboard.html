@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billing Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--surface:#1e293b;--surface2:#334155;--border:#475569;--text:#e2e8f0;--text2:#94a3b8;--primary:#3b82f6;--primary-hover:#2563eb;--danger:#ef4444;--danger-hover:#dc2626;--success:#22c55e;--warning:#f59e0b;--radius:8px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+button{cursor:pointer;font-family:inherit}
+input,select{font-family:inherit}
+
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-box{background:var(--surface);padding:40px;border-radius:12px;width:100%;max-width:420px;box-shadow:0 25px 50px rgba(0,0,0,.4)}
+.login-box h1{font-size:24px;margin-bottom:8px;text-align:center}
+.login-box p{color:var(--text2);text-align:center;margin-bottom:24px;font-size:14px}
+.radio-group{display:flex;gap:8px;margin-bottom:20px}
+.radio-group label{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:var(--surface2);border-radius:var(--radius);cursor:pointer;font-size:14px;border:2px solid transparent;transition:.2s}
+.radio-group label:has(input:checked){border-color:var(--primary);background:#1e3a5f}
+.radio-group input{display:none}
+.login-box input[type=text]{width:100%;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;margin-bottom:16px}
+.login-box input:focus{outline:none;border-color:var(--primary)}
+.btn{padding:10px 20px;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;transition:.2s}
+.btn-primary{background:var(--primary);color:#fff;width:100%}
+.btn-primary:hover{background:var(--primary-hover)}
+.login-error{color:var(--danger);font-size:13px;text-align:center;margin-top:12px;display:none}
+
+#appScreen{display:none}
+.topbar{background:var(--surface);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.topbar h2{font-size:16px;font-weight:600}
+.topbar-info{display:flex;align-items:center;gap:16px;font-size:13px;color:var(--text2)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--text);color:var(--text)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:var(--danger-hover)}
+.btn-success{background:var(--success);color:#fff}
+
+.tabs{display:flex;background:var(--surface);padding:0 24px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tab{padding:12px 20px;font-size:14px;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;transition:.2s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-panel{display:none;padding:24px}
+.tab-panel.active{display:block}
+
+.filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:6px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:20px;font-size:12px}
+.filter-btn:hover{border-color:var(--text)}
+.filter-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.date-inputs{display:flex;gap:8px;align-items:center}
+.date-inputs input{padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:12px}
+.date-inputs input:focus{outline:none;border-color:var(--primary)}
+.tenant-select,.tenant-select-inline{padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;min-width:220px;margin-right:8px;margin-bottom:8px}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card-label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.card-value{font-size:28px;font-weight:700}
+
+.table-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;background:var(--surface2);color:var(--text2);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.3px;cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{color:var(--text)}
+td{padding:10px 14px;border-top:1px solid var(--border);white-space:nowrap}
+tr:hover td{background:rgba(59,130,246,.05)}
+.status-active{color:var(--success)}
+.status-revoked{color:var(--danger)}
+
+.chart-container{display:flex;gap:12px;align-items:flex-end;height:200px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:24px}
+.chart-bar-group{display:flex;flex-direction:column;align-items:center;flex:1;gap:6px;min-width:0}
+.chart-bar{width:100%;background:var(--primary);border-radius:4px 4px 0 0;min-height:4px;transition:height .3s}
+.chart-label{font-size:11px;color:var(--text2);text-align:center;word-break:break-word}
+.chart-value{font-size:11px;color:var(--text);font-weight:600}
+
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-icon{padding:4px 10px;font-size:12px;border-radius:4px}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:12px;padding:28px;width:100%;max-width:480px;box-shadow:0 25px 50px rgba(0,0,0,.4)}
+.modal h3{margin-bottom:16px;font-size:18px}
+.modal label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;margin-top:12px}
+.modal input,.modal select{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px}
+.modal input:focus,.modal select:focus{outline:none;border-color:var(--primary)}
+.modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+.raw-key-display{background:var(--surface2);padding:16px;border-radius:var(--radius);font-family:monospace;font-size:16px;word-break:break-all;text-align:center;margin:16px 0;border:2px dashed var(--warning)}
+.raw-key-warning{color:var(--warning);font-size:12px;text-align:center;margin-bottom:12px}
+
+.quota-wrap{display:flex;align-items:center;gap:8px;min-width:120px}
+.quota-bar-bg{background:var(--surface2);height:8px;border-radius:4px;overflow:hidden;flex:1;min-width:60px}
+.quota-bar-fill{height:100%;border-radius:4px}
+.quota-low{background:var(--success)}
+.quota-med{background:var(--warning)}
+.quota-high{background:var(--danger)}
+.quota-txt{font-size:11px;color:var(--text2);white-space:nowrap}
+
+.row-actions{margin-top:8px}
+.inline-toggle{cursor:pointer;font-size:12px;color:var(--primary)}
+
+.load-more{text-align:center;padding:16px}
+.empty-state{text-align:center;padding:40px;color:var(--text2);font-size:14px}
+.admin-row{margin-bottom:16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+<div class="login-box">
+<h1>Billing Dashboard</h1>
+<p>Acesse o painel de gerenciamento</p>
+<div class="radio-group">
+<label><input type="radio" name="mode" value="admin" checked> Admin</label>
+<label><input type="radio" name="mode" value="client"> Cliente</label>
+</div>
+<input type="text" id="loginKey" placeholder="Chave de acesso" autocomplete="off">
+<button class="btn btn-primary" onclick="doLogin()">Entrar</button>
+<div id="loginError" class="login-error"></div>
+</div>
+</div>
+
+<div id="appScreen">
+<div class="topbar">
+<h2>Billing Dashboard</h2>
+<div class="topbar-info">
+<span id="modeLabel"></span>
+<button class="btn btn-outline btn-sm" onclick="doLogout()">Sair</button>
+</div>
+</div>
+<div class="tabs" id="tabsBar"></div>
+<div id="tabTenants" class="tab-panel"></div>
+<div id="tabKeys" class="tab-panel"></div>
+<div id="tabUsage" class="tab-panel"></div>
+<div id="tabOverview" class="tab-panel"></div>
+<div id="tabDetail" class="tab-panel"></div>
+</div>
+
+<div id="modalOverlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+<div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+const API=window.location.origin+'/v1';
+const DASH_TZ='America/Recife';
+let MODE='',KEY='',tenantsCache=[],apiKeysCache=[],quotaCache=[],usageCache=null,overviewCache=null,detailCache=[];
+let usageSortCol=null,usageSortAsc=true,detailSortCol=null,detailSortAsc=true,keysSortCol=null,keysSortAsc=true;
+let tenantsSortCol=null,tenantsSortAsc=true,overviewSortCol=null,overviewSortAsc=true;
+let usagePreset='month',detailPreset='month',overviewPreset='month';
+let detailPage=100;
+let selectedUsageTenant='',selectedDetailTenant='',selectedKeysTenant='';
+
+function doLogin(){
+  KEY=document.getElementById('loginKey').value.trim();
+  MODE=document.querySelector('input[name=mode]:checked').value;
+  if(!KEY){showLoginError('Informe a chave');return}
+  if(MODE==='admin') loginAdmin(); else loginClient();
+}
+function showLoginError(msg){const e=document.getElementById('loginError');e.textContent=msg;e.style.display='block'}
+function loginAdmin(){
+  fetch(API+'/admin/tenants',{headers:{'X-Admin-Key':KEY}})
+    .then(r=>{if(!r.ok)throw new Error('Chave admin invalida');return r.json()})
+    .then(ts=>{tenantsCache=ts;sessionStorage.setItem('billing_key',KEY);sessionStorage.setItem('billing_mode','admin');enterApp()})
+    .catch(e=>showLoginError(e.message));
+}
+function loginClient(){
+  const{from,to}=dateRange('month');
+  fetch(API+`/billing/summary?from=${from}&to=${to}`,{headers:{'X-API-Key':KEY}})
+    .then(r=>{if(!r.ok)throw new Error('Chave invalida');return r.json()})
+    .then(()=>{sessionStorage.setItem('billing_key',KEY);sessionStorage.setItem('billing_mode','client');enterApp()})
+    .catch(e=>showLoginError(e.message));
+}
+async function enterApp(){
+  KEY=sessionStorage.getItem('billing_key');MODE=sessionStorage.getItem('billing_mode');
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  document.getElementById('modeLabel').textContent=MODE==='admin'?'Admin':'Cliente';
+  buildTabs();
+  if(MODE==='admin'){
+    await refreshTenants();
+    if(tenantsCache.length){
+      if(!selectedUsageTenant)selectedUsageTenant=tenantsCache[0].id;
+      if(!selectedDetailTenant)selectedDetailTenant=tenantsCache[0].id;
+    }
+  }
+  showTab('usage');
+}
+function doLogout(){sessionStorage.clear();location.reload()}
+function authHeaders(){
+  return MODE==='admin'?{'X-Admin-Key':KEY}:{'X-API-Key':KEY};
+}
+function buildTabs(){
+  const bar=document.getElementById('tabsBar');
+  let h='';
+  if(MODE==='admin'){
+    h+='<button class="tab" data-tab="tenants" onclick="showTab(\'tenants\')">Tenants</button>';
+    h+='<button class="tab" data-tab="keys" onclick="showTab(\'keys\')">API Keys</button>';
+    h+='<button class="tab" data-tab="overview" onclick="showTab(\'overview\')">Visao Geral</button>';
+  }
+  h+='<button class="tab" data-tab="usage" onclick="showTab(\'usage\')">Consumo</button>';
+  h+='<button class="tab" data-tab="detail" onclick="showTab(\'detail\')">Detalhes</button>';
+  bar.innerHTML=h;
+}
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const id='tab'+name.charAt(0).toUpperCase()+name.slice(1);
+  const panel=document.getElementById(id);
+  if(panel)panel.classList.add('active');
+  if(name==='tenants'&&MODE==='admin')renderTenants();
+  if(name==='keys'&&MODE==='admin')renderKeys();
+  if(name==='usage')renderUsage();
+  if(name==='overview'&&MODE==='admin')renderOverview();
+  if(name==='detail')renderDetail();
+}
+
+function recifeYmd(d){
+  return new Intl.DateTimeFormat('sv-SE',{timeZone:DASH_TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+}
+function atRecifeMidnight(y,m,d){
+  const p=n=>String(n).padStart(2,'0');
+  return new Date(`${y}-${p(m)}-${p(d)}T00:00:00-03:00`);
+}
+function dateRange(preset){
+  const now=new Date();
+  const ymd=recifeYmd(now);
+  const [y0,m0,d0]=ymd.split('-').map(Number);
+  let from,to;
+  if(preset==='today'){
+    from=atRecifeMidnight(y0,m0,d0);
+    to=new Date(from.getTime()+86400000);
+  }else if(preset==='week'){
+    const anchor=atRecifeMidnight(y0,m0,d0);
+    const dow=new Intl.DateTimeFormat('en-US',{timeZone:DASH_TZ,weekday:'short'}).format(now);
+    const map={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+    const d=map[dow]??0;
+    from=new Date(anchor.getTime()-d*86400000);
+    to=new Date(from.getTime()+7*86400000);
+  }else if(preset==='month'){
+    from=atRecifeMidnight(y0,m0,1);
+    const ny=m0===12?y0+1:y0;
+    const nm=m0===12?1:m0+1;
+    to=atRecifeMidnight(ny,nm,1);
+  }else if(preset==='30'){
+    to=new Date(atRecifeMidnight(y0,m0,d0).getTime()+86400000);
+    from=new Date(to.getTime()-30*86400000);
+  }else if(preset==='90'){
+    to=new Date(atRecifeMidnight(y0,m0,d0).getTime()+86400000);
+    from=new Date(to.getTime()-90*86400000);
+  }else{
+    from=atRecifeMidnight(y0,m0,d0);
+    to=new Date(from.getTime()+86400000);
+  }
+  return{from:from.toISOString().slice(0,19),to:to.toISOString().slice(0,19)};
+}
+function parseApiInstant(iso){
+  let s=String(iso).trim();
+  if(!/[Zz]$|[+-]\d{2}:\d{2}$/.test(s)) s+='Z';
+  return new Date(s);
+}
+function fmtDate(iso){
+  if(!iso)return'-';
+  const d=parseApiInstant(iso);
+  if(Number.isNaN(d.getTime()))return String(iso);
+  return d.toLocaleString('pt-BR',{timeZone:DASH_TZ,day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function fmtMoney(v){
+  const n=Number(v);
+  return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:6}).format(n);
+}
+function fmtNum(v){return Number(v).toLocaleString('pt-BR')}
+
+async function refreshTenants(){
+  if(MODE!=='admin')return tenantsCache;
+  try{
+    const r=await fetch(API+'/admin/tenants',{headers:authHeaders()});
+    if(!r.ok)throw new Error('Falha ao carregar tenants');
+    tenantsCache=await r.json();
+  }catch(e){console.error(e)}
+  return tenantsCache;
+}
+
+function buildDateFilters(ns,presetVal,setFn,loadFn){
+  const{from,to}=dateRange(presetVal);
+  let h='<div class="filters">';
+  [['today','Hoje'],['week','Semana'],['month','Mes atual'],['30','30 dias'],['90','90 dias']].forEach(([k,l])=>{
+    h+=`<button type="button" class="filter-btn ${presetVal===k?'active':''}" onclick="${setFn}('${k}')">${l}</button>`;
+  });
+  h+=`<div class="date-inputs"><input type="date" id="${ns}From" value="${from.slice(0,10)}"><span style="color:var(--text2)">-</span><input type="date" id="${ns}To" value="${to.slice(0,10)}">`;
+  h+=`<button type="button" class="btn btn-outline btn-sm" onclick="${loadFn}()">Ir</button></div></div>`;
+  return h;
+}
+function setUsagePreset(p){usagePreset=p;renderUsage()}
+function setDetailPreset(p){detailPreset=p;renderDetail()}
+function setOverviewPreset(p){overviewPreset=p;renderOverview()}
+function loadUsageCustom(){usagePreset='custom';loadUsage()}
+function loadDetailCustom(){detailPreset='custom';loadDetail()}
+function loadOverviewCustom(){overviewPreset='custom';loadOverview()}
+
+function tenantOptionsHtml(selectedId){
+  let h='<option value="">Selecione o tenant</option>';
+  tenantsCache.forEach(t=>{h+=`<option value="${t.id}" ${t.id===selectedId?'selected':''}>${esc(t.nome)} (${esc(t.plano)})</option>`});
+  return h;
+}
+
+function renderTenants(){
+  const panel=document.getElementById('tabTenants');
+  panel.innerHTML='<div class="empty-state">Carregando...</div>';
+  refreshTenants().then(()=>{
+    let data=[...tenantsCache];
+    if(tenantsSortCol){data.sort((a,b)=>{
+      let va=a[tenantsSortCol],vb=b[tenantsSortCol];
+      if(typeof va==='boolean'){va=va?1:0;vb=vb?1:0}
+      if(typeof va==='string'){va=va.toLowerCase();vb=String(vb).toLowerCase()}
+      return va<vb?(tenantsSortAsc?-1:1):(va>vb?(tenantsSortAsc?1:-1):0);
+    })}
+    let h='<div class="admin-row"><button class="btn btn-primary btn-sm" onclick="showCreateTenantModal()" style="width:auto">+ Novo Tenant</button></div>';
+    h+='<div class="table-wrap"><table><thead><tr>';
+    h+=thT('nome','Nome');h+=thT('plano','Plano');h+=thT('email_contato','Email');h+=thT('ativo','Ativo');h+='<th>Acoes</th></tr></thead><tbody>';
+    data.forEach(t=>{
+      h+=`<tr><td>${esc(t.nome)}</td><td>${esc(t.plano)}</td><td>${esc(t.email_contato)}</td><td>${t.ativo?'<span class="status-active">sim</span>':'<span class="status-revoked">nao</span>'}</td>`;
+      h+=`<td class="actions"><button type="button" class="btn btn-outline btn-icon" onclick="showEditTenantModal('${t.id}')">Editar</button></td></tr>`;
+    });
+    h+='</tbody></table></div>';
+    if(!data.length)h='<div class="empty-state">Nenhum tenant</div>';
+    panel.innerHTML=h;
+  });
+}
+function thT(col,label){return `<th onclick="sortTenants('${col}')">${label}${tenantsSortCol===col?(tenantsSortAsc?' ^':' v'):''}</th>`}
+function sortTenants(col){if(tenantsSortCol===col)tenantsSortAsc=!tenantsSortAsc;else{tenantsSortCol=col;tenantsSortAsc=true}renderTenants()}
+function showCreateTenantModal(){
+  let h='<h3>Novo Tenant</h3>';
+  h+='<label>Nome</label><input id="ntNome" placeholder="Nome">';
+  h+='<label>Plano</label><select id="ntPlano"><option value="basico">basico</option><option value="pro">pro</option><option value="enterprise">enterprise</option></select>';
+  h+='<label>Email contato</label><input id="ntEmail" type="email" placeholder="email@empresa.com">';
+  h+='<div class="modal-actions"><button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button><button type="button" class="btn btn-primary" onclick="createTenant()" style="width:auto">Criar</button></div>';
+  openModal(h);
+}
+function createTenant(){
+  const body={nome:document.getElementById('ntNome').value.trim(),plano:document.getElementById('ntPlano').value,email_contato:document.getElementById('ntEmail').value.trim()};
+  if(!body.nome||!body.email_contato){alert('Preencha nome e email');return}
+  fetch(API+'/admin/tenants',{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>{if(!r.ok)return r.json().then(d=>Promise.reject(d));return r.json()})
+    .then(()=>{closeModal();refreshTenants().then(renderTenants)})
+    .catch(e=>alert(e.detail||'Erro ao criar'));
+}
+function showEditTenantModal(id){
+  const t=tenantsCache.find(x=>x.id===id);if(!t)return;
+  let h='<h3>Editar Tenant</h3>';
+  h+=`<label>Nome</label><input id="etNome" value="${esc(t.nome)}">`;
+  h+=`<label>Plano</label><select id="etPlano"><option value="basico" ${t.plano==='basico'?'selected':''}>basico</option><option value="pro" ${t.plano==='pro'?'selected':''}>pro</option><option value="enterprise" ${t.plano==='enterprise'?'selected':''}>enterprise</option></select>`;
+  h+=`<label>Email</label><input id="etEmail" type="email" value="${esc(t.email_contato)}">`;
+  h+=`<label>Ativo</label><select id="etAtivo"><option value="true" ${t.ativo?'selected':''}>Sim</option><option value="false" ${!t.ativo?'selected':''}>Nao</option></select>`;
+  h+=`<div class="modal-actions"><button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button><button type="button" class="btn btn-primary" onclick="saveTenant('${id}')" style="width:auto">Salvar</button></div>`;
+  openModal(h);
+}
+function saveTenant(id){
+  const body={nome:document.getElementById('etNome').value.trim(),plano:document.getElementById('etPlano').value,email_contato:document.getElementById('etEmail').value.trim(),ativo:document.getElementById('etAtivo').value==='true'};
+  fetch(API+'/admin/tenants/'+id,{method:'PATCH',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>{if(!r.ok)return r.json().then(d=>Promise.reject(d));return r.json()})
+    .then(()=>{closeModal();refreshTenants().then(()=>{renderTenants();if(document.getElementById('tabKeys')?.classList.contains('active'))renderKeys()})})
+    .catch(e=>alert(e.detail||'Erro ao salvar'));
+}
+
+async function renderKeys(){
+  const panel=document.getElementById('tabKeys');
+  panel.innerHTML='<div class="empty-state">Carregando tenants...</div>';
+  await refreshTenants();
+  const prevTenant=selectedKeysTenant||(tenantsCache[0]&&tenantsCache[0].id)||'';
+  let h='<div class="admin-row">';
+  h+=`<select id="keysTenantSelect" class="tenant-select" onchange="onKeysTenantChange()">${tenantOptionsHtml(prevTenant)}</select>`;
+  h+='<button type="button" class="btn btn-primary btn-sm" onclick="showCreateKeyModal()" style="width:auto">+ Nova API Key</button></div>';
+  h+='<div id="keysTableContainer"></div>';
+  panel.innerHTML=h;
+  selectedKeysTenant=document.getElementById('keysTenantSelect').value;
+  if(selectedKeysTenant)await loadKeysData();else document.getElementById('keysTableContainer').innerHTML='<div class="empty-state">Selecione um tenant</div>';
+}
+function onKeysTenantChange(){
+  selectedKeysTenant=document.getElementById('keysTenantSelect').value;
+  if(selectedKeysTenant)loadKeysData();
+}
+async function loadKeysData(){
+  const tid=document.getElementById('keysTenantSelect').value;
+  if(!tid)return;
+  try{
+    const[rk,rq]=await Promise.all([
+      fetch(API+'/admin/api-keys?tenant_id='+tid,{headers:authHeaders()}),
+      fetch(API+'/admin/api-keys/quota-usage?tenant_id='+tid,{headers:authHeaders()})
+    ]);
+    apiKeysCache=await rk.json();
+    quotaCache=await rq.json();
+    renderKeysTable();
+  }catch(e){document.getElementById('keysTableContainer').innerHTML='<div class="empty-state">Erro ao carregar</div>'}
+}
+function quotaForKey(id){const q=quotaCache.find(x=>x.id===id);return q||{usado_hoje:0,pct_usado:0,quota_diaria:0}}
+function quotaBarClass(p){if(p>=90)return'quota-high';if(p>=70)return'quota-med';return'quota-low'}
+function renderKeysTable(){
+  let data=[...apiKeysCache];
+  if(keysSortCol){data.sort((a,b)=>{
+    let va=a[keysSortCol],vb=b[keysSortCol];
+    if(typeof va==='string'){va=va.toLowerCase();vb=String(vb).toLowerCase()}
+    return va<vb?(keysSortAsc?-1:1):(va>vb?(keysSortAsc?1:-1):0);
+  })}
+  const c=document.getElementById('keysTableContainer');
+  if(!data.length){c.innerHTML='<div class="empty-state">Nenhuma API key</div>';return}
+  let h='<div class="table-wrap"><table><thead><tr>';
+  h+=thK('key_prefix','Prefixo');h+=thK('nome_cliente','Cliente');h+=thK('owner','Owner');h+=thK('status','Status');h+='<th>Quota hoje</th>';h+=thK('quota_diaria','Limite/dia');h+=thK('created_at','Criada');h+='<th>Acoes</th></tr></thead><tbody>';
+  data.forEach(k=>{
+    const q=quotaForKey(k.id);
+    const pct=Math.min(q.pct_usado,100);
+    const barCls=quotaBarClass(q.pct_usado);
+    const sc=k.status==='active'?'status-active':'status-revoked';
+    const tid=document.getElementById('keysTenantSelect').value;
+    h+=`<tr><td><code>${esc(k.key_prefix||'—')}</code></td><td>${esc(k.nome_cliente)}</td><td>${esc(k.owner||'-')}</td><td class="${sc}">${k.status}</td>`;
+    h+=`<td><div class="quota-wrap"><div class="quota-bar-bg"><div class="quota-bar-fill ${barCls}" style="width:${pct}%"></div></div><span class="quota-txt">${q.usado_hoje}/${k.quota_diaria}</span></div></td>`;
+    h+=`<td>${fmtNum(k.quota_diaria)}</td><td>${fmtDate(k.created_at)}</td>`;
+    h+=`<td class="actions"><button type="button" class="btn btn-outline btn-icon" onclick='showEditKeyModal(${JSON.stringify(String(k.id))},${JSON.stringify(k.nome_cliente)},${JSON.stringify(k.owner||'')},${k.quota_diaria},${JSON.stringify(k.status)})'>Editar</button>`;
+    if(k.status==='active')h+=`<button type="button" class="btn btn-danger btn-icon" onclick="revokeKey('${k.id}','${tid}')">Revogar</button>`;
+    h+='</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  c.innerHTML=h;
+}
+function thK(col,label){return `<th onclick="sortKeys('${col}')">${label}${keysSortCol===col?(keysSortAsc?' ^':' v'):''}</th>`}
+function sortKeys(col){if(keysSortCol===col)keysSortAsc=!keysSortAsc;else{keysSortCol=col;keysSortAsc=true}renderKeysTable()}
+function showCreateKeyModal(){
+  const tenantId=document.getElementById('keysTenantSelect')?.value||'';
+  if(!tenantId){alert('Selecione um tenant');return}
+  let h='<h3>Nova API Key</h3>';
+  h+='<label>Cliente</label><input id="mkNome" placeholder="Nome do cliente">';
+  h+='<label>Owner</label><input id="mkOwner" placeholder="Dono">';
+  h+='<label>Quota diaria</label><input id="mkQuota" type="number" value="1000">';
+  h+=`<div class="modal-actions"><button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button><button type="button" class="btn btn-primary" onclick="createKey('${tenantId}')" style="width:auto">Criar</button></div>`;
+  openModal(h);
+}
+function createKey(tid){
+  const body={tenant_id:tid,nome_cliente:document.getElementById('mkNome').value,owner:document.getElementById('mkOwner').value||null,quota_diaria:parseInt(document.getElementById('mkQuota').value)||1000};
+  fetch(API+'/admin/api-keys',{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(k=>{
+      let mh='<h3>API Key Criada</h3>';
+      mh+='<div class="raw-key-warning">Copie agora. Nao sera exibida novamente.</div>';
+      mh+=`<div class="raw-key-display" id="rawKeyText">${esc(k.raw_key)}</div>`;
+      mh+=`<div class="modal-actions"><button type="button" class="btn btn-outline" onclick="closeModal();loadKeysData()">Fechar</button><button type="button" class="btn btn-primary" onclick="copyKey()" style="width:auto">Copiar</button></div>`;
+      document.getElementById('modalContent').innerHTML=mh;
+    }).catch(()=>alert('Erro ao criar'));
+}
+function copyKey(){const t=document.getElementById('rawKeyText').textContent;navigator.clipboard.writeText(t)}
+function showEditKeyModal(id,nome,owner,quota,status){
+  let h='<h3>Editar API Key</h3>';
+  h+=`<label>Cliente</label><input id="ekNome" value="${esc(nome)}">`;
+  h+=`<label>Owner</label><input id="ekOwner" value="${esc(owner)}">`;
+  h+=`<label>Quota diaria</label><input id="ekQuota" type="number" value="${quota}">`;
+  h+=`<label>Status</label><select id="ekStatus"><option value="active" ${status==='active'?'selected':''}>active</option><option value="revoked" ${status==='revoked'?'selected':''}>revoked</option></select>`;
+  h+=`<div class="modal-actions"><button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button><button type="button" class="btn btn-primary" onclick="editKey('${id}')" style="width:auto">Salvar</button></div>`;
+  openModal(h);
+}
+function editKey(id){
+  const body={nome_cliente:document.getElementById('ekNome').value,owner:document.getElementById('ekOwner').value||null,quota_diaria:parseInt(document.getElementById('ekQuota').value),status:document.getElementById('ekStatus').value};
+  fetch(API+'/admin/api-keys/'+id,{method:'PATCH',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(()=>{closeModal();loadKeysData()}).catch(()=>alert('Erro ao editar'));
+}
+function revokeKey(id,tid){
+  if(!confirm('Revogar esta API Key?'))return;
+  fetch(API+'/admin/api-keys/'+id+'?tenant_id='+tid,{method:'DELETE',headers:authHeaders()})
+    .then(()=>loadKeysData()).catch(()=>alert('Erro'));
+}
+
+function renderUsage(){
+  const panel=document.getElementById('tabUsage');
+  let h='';
+  if(MODE==='admin'){
+    h+='<div class="admin-row"><label style="color:var(--text2);font-size:13px">Tenant</label>';
+    h+=`<select id="usageTenantSelect" class="tenant-select-inline" onchange="onUsageTenantChange()">${tenantOptionsHtml(selectedUsageTenant)}</select></div>`;
+  }
+  h+=buildDateFilters('usage',usagePreset,'setUsagePreset','loadUsageCustom');
+  h+='<div id="usageCards" class="cards"></div><div id="usageChart" class="chart-container"></div>';
+  h+='<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button type="button" class="btn btn-outline btn-sm" onclick="exportUsageJSON()">Exportar JSON</button></div>';
+  h+='<div id="usageTable"></div>';
+  panel.innerHTML=h;
+  if(MODE==='admin')selectedUsageTenant=document.getElementById('usageTenantSelect').value;
+  loadUsage();
+}
+function onUsageTenantChange(){
+  selectedUsageTenant=document.getElementById('usageTenantSelect').value;
+  loadUsage();
+}
+function customRangeFromInputs(fromId,toId){
+  const a=document.getElementById(fromId).value;
+  const b=document.getElementById(toId).value;
+  return{from:a+'T00:00:00-03:00',to:b+'T23:59:59.999-03:00'};
+}
+function loadUsage(){
+  const{from,to}=usagePreset==='custom'
+    ?customRangeFromInputs('usageFrom','usageTo')
+    :dateRange(usagePreset);
+  let url,headers;
+  if(MODE==='admin'){
+    const tid=document.getElementById('usageTenantSelect')?.value||selectedUsageTenant;
+    if(!tid){document.getElementById('usageCards').innerHTML='';document.getElementById('usageChart').innerHTML='<div class="empty-state">Selecione um tenant</div>';document.getElementById('usageTable').innerHTML='';return}
+    url=API+`/admin/billing/usage?tenant_id=${tid}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+    headers=authHeaders();
+  }else{
+    url=API+`/billing/usage?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+    headers=authHeaders();
+  }
+  fetch(url,{headers})
+    .then(r=>r.json()).then(d=>{usageCache=d;renderUsageCards(d);renderUsageChart(d);renderUsageTable(d)})
+    .catch(()=>{document.getElementById('usageCards').innerHTML='<div class="empty-state">Erro ao carregar</div>'});
+}
+function renderUsageCards(d){
+  const c=document.getElementById('usageCards');
+  if(!d||!d.by_provider){c.innerHTML='';return}
+  const totalV=d.by_provider.reduce((s,p)=>s+p.validacoes,0);
+  const totalI=d.by_provider.reduce((s,p)=>s+p.tokens_input,0);
+  const totalO=d.by_provider.reduce((s,p)=>s+p.tokens_output,0);
+  const totalC=d.by_provider.reduce((s,p)=>s+p.custo_total,0);
+  c.innerHTML=`<div class="card"><div class="card-label">Validacoes</div><div class="card-value">${fmtNum(totalV)}</div></div>
+    <div class="card"><div class="card-label">Tokens Input</div><div class="card-value">${fmtNum(totalI)}</div></div>
+    <div class="card"><div class="card-label">Tokens Output</div><div class="card-value">${fmtNum(totalO)}</div></div>
+    <div class="card"><div class="card-label">Custo</div><div class="card-value">${fmtMoney(totalC)}</div></div>`;
+}
+function renderUsageChart(d){
+  const el=document.getElementById('usageChart');
+  if(!d||!d.by_provider||!d.by_provider.length){el.innerHTML='<div class="empty-state">Sem dados</div>';return}
+  const maxV=Math.max(...d.by_provider.map(p=>p.custo_total),0.01);
+  let h='';
+  d.by_provider.forEach(p=>{
+    const pct=(p.custo_total/maxV)*100;
+    h+=`<div class="chart-bar-group"><div class="chart-value">${fmtMoney(p.custo_total)}</div><div class="chart-bar" style="height:${Math.max(pct,2)}%"></div><div class="chart-label">${esc(p.provider)}<br>${fmtNum(p.validacoes)}</div></div>`;
+  });
+  el.innerHTML=h;
+}
+function renderUsageTable(d){
+  const el=document.getElementById('usageTable');
+  if(!d||!d.by_api_key){el.innerHTML='';return}
+  let data=[...d.by_api_key];
+  if(usageSortCol){data.sort((a,b)=>{
+    let va=a[usageSortCol],vb=b[usageSortCol];
+    if(typeof va==='string'){va=va.toLowerCase();vb=String(vb).toLowerCase()}
+    return va<vb?(usageSortAsc?-1:1):(va>vb?(usageSortAsc?1:-1):0);
+  })}
+  if(!data.length){el.innerHTML='';return}
+  let h='<div class="table-wrap"><table><thead><tr>';
+  h+=thU('nome_cliente','Cliente');h+=thU('owner','Owner');h+=thU('validacoes','Valid.');h+=thU('tokens_input','Tok In');h+=thU('tokens_output','Tok Out');h+=thU('custo_total','Custo');
+  h+='</tr></thead><tbody>';
+  data.forEach(r=>{h+=`<tr><td>${esc(r.nome_cliente)}</td><td>${esc(r.owner||'-')}</td><td>${fmtNum(r.validacoes)}</td><td>${fmtNum(r.tokens_input)}</td><td>${fmtNum(r.tokens_output)}</td><td>${fmtMoney(r.custo_total)}</td></tr>`});
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+function thU(col,label){return `<th onclick="sortUsage('${col}')">${label}${usageSortCol===col?(usageSortAsc?' ^':' v'):''}</th>`}
+function sortUsage(col){if(usageSortCol===col)usageSortAsc=!usageSortAsc;else{usageSortCol=col;usageSortAsc=true}if(usageCache)renderUsageTable(usageCache)}
+function exportUsageJSON(){if(!usageCache)return;downloadJSON(usageCache,'billing_usage')}
+
+function renderOverview(){
+  const panel=document.getElementById('tabOverview');
+  let h=buildDateFilters('overview',overviewPreset,'setOverviewPreset','loadOverviewCustom');
+  h+='<div id="ovCards" class="cards"></div><div id="ovChart" class="chart-container"></div>';
+  h+='<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button type="button" class="btn btn-outline btn-sm" onclick="exportOverviewJSON()">Exportar JSON</button></div>';
+  h+='<div id="ovTable"></div>';
+  panel.innerHTML=h;
+  loadOverview();
+}
+function loadOverview(){
+  const{from,to}=overviewPreset==='custom'
+    ?customRangeFromInputs('overviewFrom','overviewTo')
+    :dateRange(overviewPreset);
+  Promise.all([
+    fetch(API+`/admin/billing/usage/all-tenants?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,{headers:authHeaders()}).then(r=>r.json()),
+    fetch(API+'/admin/tenants',{headers:authHeaders()}).then(r=>r.json())
+  ]).then(([rows,tenants])=>{
+    overviewCache=rows;
+    const ativos=tenants.filter(t=>t.ativo).length;
+    const totalV=rows.reduce((s,r)=>s+r.validacoes,0);
+    const totalC=rows.reduce((s,r)=>s+r.custo_total,0);
+    document.getElementById('ovCards').innerHTML=`
+      <div class="card"><div class="card-label">Validacoes (todos)</div><div class="card-value">${fmtNum(totalV)}</div></div>
+      <div class="card"><div class="card-label">Custo total</div><div class="card-value">${fmtMoney(totalC)}</div></div>
+      <div class="card"><div class="card-label">Tenants ativos</div><div class="card-value">${fmtNum(ativos)}</div></div>`;
+    renderOverviewChart(rows);
+    renderOverviewTable(rows);
+  }).catch(()=>{document.getElementById('ovCards').innerHTML='<div class="empty-state">Erro</div>'});
+}
+function renderOverviewChart(rows){
+  const el=document.getElementById('ovChart');
+  const sorted=[...rows].sort((a,b)=>b.custo_total-a.custo_total).slice(0,10);
+  if(!sorted.length){el.innerHTML='<div class="empty-state">Sem dados</div>';return}
+  const maxV=Math.max(...sorted.map(r=>r.custo_total),0.01);
+  let h='';
+  sorted.forEach(r=>{
+    const pct=(r.custo_total/maxV)*100;
+    h+=`<div class="chart-bar-group"><div class="chart-value">${fmtMoney(r.custo_total)}</div><div class="chart-bar" style="height:${Math.max(pct,2)}%"></div><div class="chart-label">${esc(r.nome)}<br>${esc(r.plano)}</div></div>`;
+  });
+  el.innerHTML=h;
+}
+function renderOverviewTable(rows){
+  let data=[...rows];
+  if(overviewSortCol){data.sort((a,b)=>{
+    let va=a[overviewSortCol],vb=b[overviewSortCol];
+    if(typeof va==='string'){va=va.toLowerCase();vb=String(vb).toLowerCase()}
+    return va<vb?(overviewSortAsc?-1:1):(va>vb?(overviewSortAsc?1:-1):0);
+  })}
+  const el=document.getElementById('ovTable');
+  if(!data.length){el.innerHTML='<div class="empty-state">Nenhum dado</div>';return}
+  let h='<div class="table-wrap"><table><thead><tr>';
+  h+=thO('nome','Tenant');h+=thO('plano','Plano');h+=thO('validacoes','Valid.');h+=thO('tokens_input','Tok In');h+=thO('tokens_output','Tok Out');h+=thO('custo_total','Custo');
+  h+='</tr></thead><tbody>';
+  data.forEach(r=>{h+=`<tr><td>${esc(r.nome)}</td><td>${esc(r.plano)}</td><td>${fmtNum(r.validacoes)}</td><td>${fmtNum(r.tokens_input)}</td><td>${fmtNum(r.tokens_output)}</td><td>${fmtMoney(r.custo_total)}</td></tr>`});
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+function thO(col,label){return `<th onclick="sortOverview('${col}')">${label}${overviewSortCol===col?(overviewSortAsc?' ^':' v'):''}</th>`}
+function sortOverview(col){if(overviewSortCol===col)overviewSortAsc=!overviewSortAsc;else{overviewSortCol=col;overviewSortAsc=true}if(overviewCache)renderOverviewTable(overviewCache)}
+function exportOverviewJSON(){if(!overviewCache)return;downloadJSON(overviewCache,'billing_all_tenants')}
+
+function renderDetail(){
+  const panel=document.getElementById('tabDetail');
+  let h='';
+  if(MODE==='admin'){
+    h+='<div class="admin-row"><label style="color:var(--text2);font-size:13px">Tenant</label>';
+    h+=`<select id="detailTenantSelect" class="tenant-select-inline" onchange="onDetailTenantChange()">${tenantOptionsHtml(selectedDetailTenant)}</select>`;
+    h+='<label style="color:var(--text2);font-size:13px;margin-left:8px">API Key</label>';
+    h+='<select id="detailKeyFilter" class="tenant-select-inline" onchange="loadDetail()"><option value="">Todas</option></select></div>';
+  }else{
+    h+='<select id="detailKeyFilter" class="tenant-select-inline" onchange="loadDetail()" style="display:none"><option value="">Todas</option></select>';
+  }
+  h+=buildDateFilters('detail',detailPreset,'setDetailPreset','loadDetailCustom');
+  h+='<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button type="button" class="btn btn-outline btn-sm" onclick="exportDetailJSON()">Exportar JSON</button></div>';
+  h+='<div id="detailTable"></div>';
+  panel.innerHTML=h;
+  if(MODE==='admin'){
+    selectedDetailTenant=document.getElementById('detailTenantSelect').value;
+    loadDetailKeyOptions().then(loadDetail);
+  }else loadDetail();
+}
+function onDetailTenantChange(){
+  selectedDetailTenant=document.getElementById('detailTenantSelect').value;
+  loadDetailKeyOptions().then(loadDetail);
+}
+async function loadDetailKeyOptions(){
+  const sel=document.getElementById('detailKeyFilter');
+  if(!sel||MODE!=='admin')return;
+  const tid=document.getElementById('detailTenantSelect')?.value;
+  sel.innerHTML='<option value="">Todas</option>';
+  if(!tid)return;
+  try{
+    const r=await fetch(API+'/admin/api-keys?tenant_id='+tid,{headers:authHeaders()});
+    const ks=await r.json();
+    ks.forEach(k=>{const o=document.createElement('option');o.value=k.id;o.textContent=k.nome_cliente;sel.appendChild(o)});
+  }catch(e){}
+}
+function loadDetail(){
+  const df=document.getElementById('detailFrom');
+  const dt=document.getElementById('detailTo');
+  const{from,to}=detailPreset==='custom'&&df&&dt
+    ?customRangeFromInputs('detailFrom','detailTo')
+    :dateRange(detailPreset);
+  const keyFilter=document.getElementById('detailKeyFilter')?.value||'';
+  let url,headers;
+  if(MODE==='admin'){
+    const tid=document.getElementById('detailTenantSelect')?.value||selectedDetailTenant;
+    if(!tid){document.getElementById('detailTable').innerHTML='<div class="empty-state">Selecione um tenant</div>';return}
+    url=API+`/admin/billing/usage/detail?tenant_id=${tid}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+    headers=authHeaders();
+  }else{
+    url=API+`/billing/usage/detail?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+    headers=authHeaders();
+  }
+  if(keyFilter)url+=`&api_key_id=${encodeURIComponent(keyFilter)}`;
+  detailPage=100;
+  fetch(url,{headers})
+    .then(r=>{if(r.status===400)return r.json().then(d=>Promise.reject(new Error(typeof d.detail==='string'?d.detail:JSON.stringify(d.detail))));return r.json()})
+    .then(d=>{detailCache=d;renderDetailTable()})
+    .catch(e=>{const el=document.getElementById('detailTable');if(el)el.innerHTML=`<div class="empty-state">${esc(e.message)}</div>`});
+}
+function renderDetailTable(){
+  const el=document.getElementById('detailTable');
+  let data=[...detailCache];
+  if(detailSortCol){data.sort((a,b)=>{
+    let va=a[detailSortCol],vb=b[detailSortCol];
+    if(typeof va==='string'){va=va.toLowerCase();vb=String(vb).toLowerCase()}
+    return va<vb?(detailSortAsc?-1:1):(va>vb?(detailSortAsc?1:-1):0);
+  })}
+  if(!data.length){el.innerHTML='<div class="empty-state">Nenhum registro</div>';return}
+  const visible=data.slice(0,detailPage);
+  let h='<div class="table-wrap"><table><thead><tr>';
+  h+=thD('date','Data');h+=thD('request_id','Request');h+=thD('llm_provider','Provider');h+=thD('nome_cliente','Cliente');h+=thD('tokens_input','In');h+=thD('tokens_output','Out');h+=thD('custo_total','Custo');
+  h+='</tr></thead><tbody>';
+  visible.forEach(r=>{
+    h+=`<tr><td>${fmtDate(r.date)}</td><td style="font-family:monospace;font-size:11px">${String(r.request_id).slice(0,8)}...</td><td>${esc(r.llm_provider)}</td><td>${esc(r.nome_cliente)}</td><td>${fmtNum(r.tokens_input)}</td><td>${fmtNum(r.tokens_output)}</td><td>${fmtMoney(r.custo_total)}</td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  if(detailPage<data.length)h+=`<div class="load-more"><button type="button" class="btn btn-outline" onclick="detailPage+=100;renderDetailTable()">Carregar mais</button></div>`;
+  el.innerHTML=h;
+}
+function thD(col,label){return `<th onclick="sortDetail('${col}')">${label}${detailSortCol===col?(detailSortAsc?' ^':' v'):''}</th>`}
+function sortDetail(col){if(detailSortCol===col)detailSortAsc=!detailSortAsc;else{detailSortCol=col;detailSortAsc=true}renderDetailTable()}
+function exportDetailJSON(){downloadJSON(detailCache,'billing_detail')}
+
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function openModal(html){document.getElementById('modalContent').innerHTML=html;document.getElementById('modalOverlay').classList.add('show')}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('show')}
+function downloadJSON(data,name){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name+'.json';a.click();
+  URL.revokeObjectURL(url);
+}
+
+(function(){
+  const k=sessionStorage.getItem('billing_key'),m=sessionStorage.getItem('billing_mode');
+  if(k&&m){KEY=k;MODE=m;void enterApp()}
+})();
+</script>
+</body>
+</html>
