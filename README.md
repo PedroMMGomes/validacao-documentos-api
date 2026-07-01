@@ -91,4 +91,4 @@ Stack: **FastAPI · SQLAlchemy · Alembic · Postgres · Docker · Gunicorn**.
 
 ---
 
-<sub>Capa gerada com OpenAI <code>gpt-image-2</code> (texto PT-BR correto, com acentos).</sub>
+<sub>Capa: OpenAI <code>gpt-image-2</code>.</sub>

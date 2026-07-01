@@ -58,7 +58,7 @@ flowchart TD
 
 ```powershell
 $BASE    = "http://localhost:8000"
-$API_KEY = "8d6b16d1438841b7885b437e39a149d2"   # API key de cliente ativa
+$API_KEY = "SUA_API_KEY_AQUI"                  # preencha com sua API key de cliente
 $ADMIN   = "SUA_ADMIN_KEY_AQUI"                  # preencha antes de rodar endpoints /admin
 $TENANT  = "uuid-do-tenant"                       # preencha ao criar tenant
 $KEY_ID  = "uuid-da-api-key"                      # preencha ao listar keys
